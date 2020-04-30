@@ -57,7 +57,7 @@ Overview
   ├── config.json - holds configuration for training
   ├── parse_config.py - class to handle config file and cli options
   │
-  ├── new_project.py - initialize new project with template files
+  ├── main.py - execute the whole process of this project
   │
   ├── saved/
   │   ├── models/ - trained models are saved here
