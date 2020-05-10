@@ -62,7 +62,8 @@ class PixelCNN_DecoderLayer(nn.Module):
                                                shortcut_or_vertical_output=downward_cache.pop())
 
             down_rightward = self.down_rightward_stream[i](down_rightward_input, 
-                                                           shortcut_or_vertical_output=torch.cat([downward, down_rightward_cache.pop()], dim=1))
+                                                           shortcut_or_vertical_output=
+                                                           torch.cat([downward, down_rightward_cache.pop()], dim=1))
 
         return downward, down_rightward
 
@@ -99,8 +100,14 @@ class PixelCNN_pp(nn.Module):
         # but why add padding to channel??
         # Also why horizontal init with vertical_kernel(1, 3) and horizontal_init(2, 1)???
         self.downward_init = downward_conv(input_channels + 1, num_filters, kernel_size=(2, 3), top_pad_output=True)
-        self.down_rightward_init = nn.ModuleList([downward_conv(input_channels + 1, num_filters, kernel_size=(1, 3), top_pad_output=True),
-                                                  down_rightward_conv(input_channels + 1, num_filters, kernel_size=(2, 1), left_pad_output=True)])
+        self.down_rightward_init = nn.ModuleList([downward_conv(input_channels + 1, 
+                                                                num_filters, 
+                                                                kernel_size=(1, 3), 
+                                                                top_pad_output=True),
+                                                  down_rightward_conv(input_channels + 1, 
+                                                                      num_filters, 
+                                                                      kernel_size=(2, 1), 
+                                                                      left_pad_output=True)])
         
         num_coeffs = self.input_channels * (self.input_channels - 1) // 2 # nC2  /2
         num_out = self.input_channels * 2 + num_coeffs + 1 # mu, s, c_rg, c_rb, c_gb, pi
