@@ -35,6 +35,17 @@ class gated_residual_conv(nn.Module):
         self.conv_1 = conv_op(2 * in_channels, in_channels)
         self.conv_2 = conv_op(2 * in_channels, 2 * in_channels)
         
+        """
+        Encoder
+            horizontal stream input : previous layer's horizontal output, current layer's vertical output(dim=C)
+            vertical stream input : previous layer's vertical output
+        
+        Decoder 
+            horizontal stream input : previous layer's horizontal output, CONCAT(current layer's vertical output(C), 
+                                                                                symmetric horizontal output from Encoder)(dim=2C)
+            vertical stream input : previous layer's vertical output, symmetric vertical output from Encoder(dim=C)                                         
+        """
+        
         if self.is_decoder:
             if self.is_horizontal:
                 self.nin = nin(2 * 2 * in_channels, in_channels)
@@ -74,6 +85,8 @@ class downward_conv(nn.Module):
         
     
         if self.top_pad_output:
+            # down shift means removing the last row of output and add padding at the first index of row
+            # so that it prevents prediction operation of the last row
             self.down_shift = down_shift
         
     def forward(self, x):
@@ -93,6 +106,8 @@ class down_rightward_conv(nn.Module):
         self.conv = weight_norm(nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride))
         
         if self.left_pad_output:
+            # right shift means removing the last column of output and add padding at the first index of column
+            # so that it prevents prediction operation of the last column
             self.right_shift = right_shift
             
     def forward(self, x):
