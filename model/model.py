@@ -109,10 +109,10 @@ class PixelCNN_pp(nn.Module):
                                                                       kernel_size=(2, 1), 
                                                                       left_pad_output=True)])
         
-        num_coeffs = self.input_channels * (self.input_channels - 1) // 2 # nC2  /2
-        num_out = self.input_channels * 2 + num_coeffs + 1 # mu, s, c_rg, c_rb, c_gb, pi
+        self.num_coeffs = self.input_channels * (self.input_channels - 1) // 2 # nC2  /2
+        self.num_out = self.input_channels * 2 + self.num_coeffs + 1 # mu, s, c_rg, c_rb, c_gb, pi
         
-        self.output_layer = nin(num_filters, self.num_mixture * num_out)
+        self.output_layer = nin(num_filters, self.num_mixture * self.num_out)
         
     def forward(self, x):
         x_shape = [int(dim) for dim in x.size()]
@@ -148,5 +148,11 @@ class PixelCNN_pp(nn.Module):
                 down_rightward = self.upsize_down_rightward[i](down_rightward)
         
         mixture_params = self.output_layer(F.elu(down_rightward))
+        # mixture params shape : [N, C, H, W, num_out * num_mixture]
+        mixture_params = mixture_params.permute(0, 2, 3, 1).reshape(-1, x_shape[2], x_shape[3], self.num_mixture, self.num_out)
+        
+        split = 3 if self.input_channels == 1 else [1, self.input_channels, self.input_channels, self.num_coeffs]
+        mixture_params = list(torch.split(mixture_params, split, dim=-1))
+        mixture_params[0] = torch.squeeze(mixture_params[0], dim=-1)
         
         return mixture_params
