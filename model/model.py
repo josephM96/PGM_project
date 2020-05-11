@@ -151,7 +151,7 @@ class PixelCNN_pp(nn.Module):
         # mixture params shape : [N, C, H, W, num_out * num_mixture]
         mixture_params = mixture_params.permute(0, 2, 3, 1).reshape(-1, x_shape[2], x_shape[3], self.num_mixture, self.num_out)
         
-        split = 3 if self.input_channels == 1 else [1, self.input_channels, self.input_channels, self.num_coeffs]
+        split = [1, 1, 1] if self.input_channels == 1 else [1, self.input_channels, self.input_channels, self.num_coeffs]
         mixture_params = list(torch.split(mixture_params, split, dim=-1))
         mixture_params[0] = torch.squeeze(mixture_params[0], dim=-1)
         
