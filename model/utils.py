@@ -50,13 +50,6 @@ def log_prob_from_logits(x):
     return x - max_value - torch.log(torch.sum(torch.exp(x - max_value), dim=-1, keepdim=True))
 
 
-# mixture weight to be one-hot vector (i.e. hard assignemnt of mixture component)
-# this function is used for sampling operation
-def to_one_hot():
-    pass
-
-
-
 def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., num_mixture=10, input_channels=3, scaled=True):
     """
     Return 
@@ -138,8 +131,15 @@ def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., num_mi
     return nll
 
 
+# mixture weight to be one-hot vector (i.e. hard assignemnt of mixture component)
+# this function is used for sampling operation
+def to_one_hot():
+    pass
+
+
 def sample_from_quantized_mixture():
     pass
+
 
 def sample_img(model):
     model.eval()
