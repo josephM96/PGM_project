@@ -106,13 +106,20 @@ def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., num_mi
     * P means cdf function, p means pdf function
      
     1) low < j < high : P(x=j) = cdf(v <= x_plus) - cdf(v <= x_minus)
+    
     2) j = low : log_P(x=j) = (x - mu + 0.5) /s - log(1 + exp(x - mu + 0.5))
-                        = log(1 / (1 + exp(-(x - mu + 0.5)))) = log_cdf(v <= low) 
+                            = log(1 / (1 + exp(-(x - mu + 0.5)))) 
+                            = log_cdf(v <= low) 
+                            
     3) j = high : log_P(x=j) = - log(1 + exp(x - mu - 0.5))
-                             = log(1 - 1 / exp(-(x - mu -0.5))) = log(1 - cdf(v <= high)) = log_cdf(P(v >= high))
+                             = log(1 / (1 + exp(x - mu - 0.5)))
+                             = log(1 - 1 / (1 + exp(-(x - mu -0.5)))) 
+                             = log(1 - cdf(v <= high)) 
+                             = log_cdf(P(v >= high))
     
     4) log_p(x=j) = x - mu -log_s - 2 * log(1 + exp(x - mu))
-               = log(exp(x - mu) / (s * (1 + exp(x - mu))^2)) = log_pdf(v=mid)
+                  = log(exp(x - mu) / (s * (1 + exp(x - mu))^2)) 
+                  = log_pdf(v=mid)
     """
     # all tensors below have shape [N, H, W, num_mixture, num_channels]
     cdf_x_plus = F.sigmoid(x_plus) # P(v <= x_plus)
