@@ -97,10 +97,10 @@ def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., num_mi
     inverse_stds = torch.exp(-log_stds)
     x_centered = x - means
     # (x + 0.5 - mean) / std
-    x_plus = (x_centered + 1 / 255.) * inverse_std
+    x_plus = (x_centered + 1 / 255.) * inverse_stds
     # (x - 0.5 - mean) / std
-    x_minus = (x_centered - 1 / 255.) * inverse_std
-    x_mid = x_centered * inverse_std
+    x_minus = (x_centered - 1 / 255.) * inverse_stds
+    x_mid = x_centered * inverse_stds
     
     """
     * P means cdf function, p means pdf function
@@ -117,7 +117,7 @@ def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., num_mi
     # all tensors below have shape [N, H, W, num_mixture, num_channels]
     cdf_x_plus = F.sigmoid(x_plus) # P(v <= x_plus)
     cdf_x_minus = F.sigmoid(x_minus) # P(v <= x_minus)
-    cdf_x_in_range = cdf_plus - cdf_minus # P(x) = P(x_minus < v < x_plus), in this case x \in [low, high] 
+    cdf_x_in_range = cdf_x_plus - cdf_x_minus # P(x) = P(x_minus < v < x_plus), in this case x \in [low, high] 
     log_cdf_x_low = x_plus - F.softplus(x_plus) # P(x) = P(v =< x_plus), in this case x = low, so that x_minus -> -inf, as denoted in the paper
     log_cdf_x_high = - F.softplus(x_minus) # P(x) = P(v >= x_minus), in this casd x = high, so that x_plus -> +inf, as denoted in the paper
     log_pdf_x_mid = x_mid - log_stds - 2 * F.softplus(x_mid)
@@ -126,7 +126,7 @@ def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., num_mi
     log_probs = torch.where(x < -0.999, log_cdf_x_low, torch.where(x > 0.999, log_cdf_x_high, torch.log(cdf_x_in_range)))
     log_probs = torch.sum(log_probs, dim=-1) + log_prob_from_logits(mixture_logit_probs)
     
-    nll = -torch.sum(log_sum_exp(log_exp))
+    nll = -torch.sum(log_sum_exp(log_probs))
     
     return nll
 
