@@ -50,7 +50,7 @@ def log_prob_from_logits(x):
     return x - max_value - torch.log(torch.sum(torch.exp(x - max_value), dim=-1, keepdim=True))
 
 
-def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., num_mixture=10, input_channels=3, scaled=True):
+def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., input_channels=3, scaled=True):
     """
     Return 
         negative log-likelihood of the input image, which is computed by the learned distribution parameters from the PixelCNN_pp
@@ -58,6 +58,10 @@ def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., num_mi
     Args
         x : input image
         mixture_params : returend parameters for mixture logistic distribution by the PixelCNN_pp
+        input_channesls: 3 (for cifar10) => number of mixture should be 10 (i.e last dimension of mixture_params[0])
+                         1 (for MNIST) => number of mixture should be 3 (i.e last dimension of mixture_params[0])
+        scaled : if True, all values of input images are in [-1, 1]
+                 else, [0, 255] => should be re-scaled to be in [-1, 1]
     """
     
     # [N, C, H, W] -> [N, H, W, C] -> [N, H, W, 1, C]
