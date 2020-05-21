@@ -6,31 +6,6 @@ def nll_loss(output, target):
     return F.nll_loss(output, target)
 
 
-def log_sum_exp(x):
-    """
-    Input
-        shape [N, H, W, num_mixture]
-    Output
-        shape [N, H, W]
-    """
-    max_value, _ = torch.max(x, dim=-1, keepdim=True)
-
-    return max_value.squeeze(-1) + torch.log(torch.sum(torch.exp(x - max_value), dim=-1))
-
-
-# log softmax probability from logits
-def log_prob_from_logits(x):
-    """
-    Input
-        shape [N, H, W, num_mixture]
-    Output
-        shape [N, H, W, num_mixture]
-    """
-    max_value, _ = torch.max(x, dim=-1, keepdim=True)
-
-    return x - max_value - torch.log(torch.sum(torch.exp(x - max_value), dim=-1, keepdim=True))
-
-
 def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., input_channels=3, scaled=True):
     """
     Return
@@ -44,6 +19,28 @@ def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., input_
         scaled : if True, all values of input images are in [-1, 1]
                  else, [0, 255] => should be re-scaled to be in [-1, 1]
     """
+    def log_sum_exp(x):
+        """
+        Input
+            shape [N, H, W, num_mixture]
+        Output
+            shape [N, H, W]
+        """
+        max_value, _ = torch.max(x, dim=-1, keepdim=True)
+
+        return max_value.squeeze(-1) + torch.log(torch.sum(torch.exp(x - max_value), dim=-1))
+
+    # log softmax probability from logits
+    def log_prob_from_logits(x):
+        """
+        Input
+            shape [N, H, W, num_mixture]
+        Output
+            shape [N, H, W, num_mixture]
+        """
+        max_value, _ = torch.max(x, dim=-1, keepdim=True)
+
+        return x - max_value - torch.log(torch.sum(torch.exp(x - max_value), dim=-1, keepdim=True))
 
     # [N, C, H, W] -> [N, H, W, C] -> [N, H, W, 1, C]
     x = x.permute(0, 2, 3, 1)
