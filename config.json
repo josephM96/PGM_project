@@ -1,8 +1,12 @@
 {
-    "name": "LLR",
+    "name": "LLR_ratio",
     "n_gpu": 1,
 
-    "arch": {
+    "arch_background": {
+        "type": "pixcelCNNpp",
+        "args": {}
+    },
+    "arch_semantic": {
         "type": "pixcelCNNpp",
         "args": {}
     },
