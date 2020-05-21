@@ -24,7 +24,7 @@
             "amsgrad": true
         }
     },
-    "loss": "nll_loss",
+    "loss": "quantized_mixture_logistic_loss",
     "metrics": [
         "accuracy", "top_k_acc"
     ],
