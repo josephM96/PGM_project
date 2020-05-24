@@ -42,12 +42,13 @@ class Trainer(BaseTrainer):
 
             self.optimizer.zero_grad()
             output = self.model(data)
-            # loss = self.criterion(output, target)
             loss = self.criterion(data, output, input_channels=data.shape[1])
             loss.backward()
             self.optimizer.step()
 
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
+            # write the loss value of training set in every step
+            self.writer.add_scalar('train/train_loss', loss.data.item())
             self.train_metrics.update('loss', loss.item())
 
             if batch_idx % self.log_step == 0:
@@ -55,7 +56,7 @@ class Trainer(BaseTrainer):
                     epoch,
                     self._progress(batch_idx),
                     loss.item()))
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
             if batch_idx == self.len_epoch:
                 break
@@ -64,6 +65,8 @@ class Trainer(BaseTrainer):
         if self.do_validation:
             val_log = self._valid_epoch(epoch)
             log.update(**{'val_'+k : v for k, v in val_log.items()})
+            # write the loss value of validiation set in every epoch
+            self.writer.add_scalar('val/val_loss', val_log['loss'])
 
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()
@@ -83,11 +86,11 @@ class Trainer(BaseTrainer):
                 data, target = data.to(self.device), target.to(self.device)
 
                 output = self.model(data)
-                loss = self.criterion(output, target)
+                loss = self.criterion(data, output, input_channels=data.shape[1])
 
                 self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
                 self.valid_metrics.update('loss', loss.item())
-                self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
+                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
         # add histogram of model parameters to the tensorboard
         for name, p in self.model.named_parameters():

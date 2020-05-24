@@ -68,6 +68,10 @@ class PixelCNN_DecoderLayer(nn.Module):
                                                            shortcut_or_vertical_output=
                                                            torch.cat([downward, down_rightward_cache.pop()], dim=1))
 
+            # input to the each module should be updated (is it right?)
+            downward_input = downward
+            down_rightward_input = down_rightward
+
         return downward, down_rightward
 
 
@@ -133,7 +137,7 @@ class PixelCNN_pp(nn.Module):
             down_rightward_cache += down_rightward_list
 
             # At the last block we should not downscale the tensor
-            if i != 2:
+            if i != self.num_scales-1:
                 downward = self.downsize_downward[i](downward_cache[-1])
                 down_rightward = self.downsize_down_rightward[i](down_rightward_cache[-1])
                 downward_cache.append(downward)

@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+import numpy as np
 
 
 def nll_loss(output, target):
@@ -104,11 +105,16 @@ def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., input_
         x_plus)  # P(x) = P(v =< x_plus), in this case x = low, so that x_minus -> -inf, as denoted in the paper
     log_cdf_x_high = - F.softplus(
         x_minus)  # P(x) = P(v >= x_minus), in this casd x = high, so that x_plus -> +inf, as denoted in the paper
-    log_pdf_x_mid = x_mid - log_stds - 2 * F.softplus(x_mid)
+    log_pdf_x_mid = x_mid - log_stds - 2. * F.softplus(x_mid)
 
-    # overflow issue?
-    log_probs = torch.where(x < -0.999, log_cdf_x_low,
-                            torch.where(x > 0.999, log_cdf_x_high, torch.log(cdf_x_in_range)))
+    # due to overflow issue, modify the loss function.
+    inner_inner_cond = (cdf_x_in_range > 1e-5).float()
+    inner_inner_out = inner_inner_cond * torch.log(torch.clamp(cdf_x_in_range, min=1e-12)) \
+                      + (1. - inner_inner_cond) * (log_pdf_x_mid - np.log(127.5))
+    inner_cond = (x > 0.999).float()
+    inner_out = inner_cond * log_cdf_x_high + (1. - inner_cond) * inner_inner_out
+    cond = (x < -0.999).float()
+    log_probs = cond * log_cdf_x_low + (1. - cond) * inner_out
     log_probs = torch.sum(log_probs, dim=-1) + log_prob_from_logits(mixture_logit_probs)
 
     nll = -torch.sum(log_sum_exp(log_probs))
