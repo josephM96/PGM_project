@@ -5,9 +5,10 @@ class MnistDataLoader(BaseDataLoader):
     """
     MNIST data loading using BaseDataLoader
     """
-    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True):
+    def __init__(self, data_dir, img_size, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True):
         rescaling = lambda x: (x - .5) * 2.
         trsfm = transforms.Compose([
+            transforms.Resize((img_size, img_size)),
             transforms.ToTensor(),
             rescaling
         ])

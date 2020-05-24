@@ -25,6 +25,8 @@ class Trainer(BaseTrainer):
         self.do_validation = self.valid_data_loader is not None
         self.lr_scheduler = lr_scheduler
         self.log_step = int(np.sqrt(data_loader.batch_size))
+        self.train_metrics = MetricTracker('loss')
+        self.valid_metrics = MetricTracker('loss')
 
     def _train_epoch(self, epoch):
         """
@@ -40,7 +42,8 @@ class Trainer(BaseTrainer):
 
             self.optimizer.zero_grad()
             output = self.model(data)
-            loss = self.criterion(output, target)
+            # loss = self.criterion(output, target)
+            loss = self.criterion(data, output, input_channels=data.shape[1])
             loss.backward()
             self.optimizer.step()
 

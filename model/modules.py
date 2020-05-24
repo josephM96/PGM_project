@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils import weight_norm
 from functools import partial
-from model_utils import concat_elu
+from model.model_utils import concat_elu
 import numpy as np
-from model_utils import *
+from model.model_utils import *
 
 
 # dictionary for indicating kernel size, kernel valid regrion

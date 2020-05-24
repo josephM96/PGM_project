@@ -4,8 +4,8 @@ import torch.nn.functional as F
 from torch.distributions import Categorical, TransformedDistribution, Independent, Uniform
 from torch.distributions import SigmoidTransform, AffineTransform, Transform
 import torchvision
-from modules import *
-from model_utils import *
+from model.modules import *
+from model.model_utils import *
 
 
 # quantized distribution 어떻게 할 것인지
