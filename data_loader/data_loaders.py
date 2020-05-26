@@ -13,7 +13,7 @@ class FashionMNISTDataLoader(BaseDataLoader):
     """
     def __init__(self, data_dir, img_size, batch_size, mode='background', shuffle=True, validation_split=0.0, num_workers=1, training=True):
         if mode == 'background':
-            mutate = FashionMNISTDataLoader.mutate()
+            mutate = FashionMNISTDataLoader.mutate
             rescaling = lambda x: (x - .5) * 2.
             trsfm = transforms.Compose([
                 transforms.Resize((img_size, img_size)),
@@ -36,9 +36,9 @@ class FashionMNISTDataLoader(BaseDataLoader):
     @staticmethod
     def mutate(img, corruption_rate=0.1):
         img = img * 255
-        mask = (torch.randn_like(img) < corruption_rate).float()
-        corruption = torch.rand_int(0, 255, img.shape).float()
-        img = img * mask + corruption * (1 - mask)
+        mask = (torch.rand_like(img) < corruption_rate).float()
+        corruption = torch.randint(0, 255, img.shape).float()
+        img = img * (1 - mask) + corruption * mask
         img = img / 255
 
         return img
