@@ -165,3 +165,43 @@ class PixelCNN_pp(nn.Module):
         mixture_params[0] = torch.squeeze(mixture_params[0], dim=-1)
 
         return mixture_params
+
+
+class Glow(nn.Module):
+    def __init__(self, input_channels, n_flow, n_block, affine=True, conv_lu=True, learned_prior=True):
+        super().__init__()
+
+        self.blocks = nn.ModuleList()
+        n_channel = input_channels
+        for i in range(n_block - 1):
+            self.blocks.append(Block(n_channel, n_flow, affine=affine, conv_lu=conv_lu, learned_prior=learned_prior))
+            n_channel *= 2
+        self.blocks.append(Block(n_channel, n_flow, split=False, affine=affine, conv_lu=conv_lu, learned_prior=learned_prior))
+
+    def forward(self, input):
+        log_pz_sum = 0
+        logdet_sum = 0
+        out = input + torch.rand_like(input)/256
+        z_outs = []
+
+        C, H, W = input.shape[1:]
+
+        for block in self.blocks:
+            out, logdet, logpz, z_out = block(out)
+            z_outs.append(z_out)
+            logdet_sum = logdet_sum + logdet
+
+            if logpz is not None:
+                log_pz_sum = log_pz_sum + logpz
+
+        return [log_pz_sum, logdet_sum, z_outs]
+
+    def reverse(self, z_list, reconstruct=False):
+        for i, block in enumerate(self.blocks[::-1]):
+            if i == 0:
+                input = block.reverse(z_list[-1], z_list[-1], reconstruct=reconstruct)
+            else:
+                input = block.reverse(input, z_list[-(i+1)], reconstruct=reconstruct)
+
+        return input
+

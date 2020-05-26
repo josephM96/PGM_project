@@ -1,5 +1,5 @@
 {
-    "name": "LLR_ratio_base_fmnist",
+    "name": "LLR_ratio_pixelcnnpp_semantic_fmnist",
     "n_gpu": 1,
 
     "arch_background": {
@@ -19,7 +19,7 @@
         "args":{
             "data_dir": "data/",
             "batch_size": 64,
-            "mode": "base",
+            "mode": "semantic",
             "shuffle": true,
             "validation_split": 0.1,
             "num_workers": 2,

@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 import numpy as np
+from math import log
 
 
 def nll_loss(output, target):
@@ -118,5 +119,15 @@ def quantized_mixture_logistic_loss(x, mixture_params, low=0., high=255., input_
     log_probs = torch.sum(log_probs, dim=-1) + log_prob_from_logits(mixture_logit_probs)
 
     nll = -torch.sum(log_sum_exp(log_probs))
+
+    return nll
+
+def flow_likelihood_loss(x, pz_det_z_list, input_channels=3):
+    log_pz = pz_det_z_list[0]
+    log_det = pz_det_z_list[1]
+
+    n_pixel = input_channels * x.shape[2] * x.shape[3]
+
+    nll = -torch.sum(-log(256) * n_pixel + log_det + log_pz)
 
     return nll
