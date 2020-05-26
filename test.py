@@ -8,12 +8,12 @@ import model.model as module_arch
 from parse_config import ConfigParser
 
 
-def main(config):
-    logger = config.get_logger('test')
+def main(config_bg, config_sem):
+    logger = config_sem.get_logger('test')
 
-    # setup data_loader instances
-    data_loader = getattr(module_data, config['data_loader']['type'])(
-        config['data_loader']['args']['data_dir'],
+    # setup data_loader instances #TODO Be careful of 'mode' parameter
+    data_loader = getattr(module_data, config_sem['data_loader']['type'])(
+        config_sem['data_loader']['args']['data_dir'],
         batch_size=64,
         shuffle=False,
         validation_split=0.0,
@@ -22,22 +22,29 @@ def main(config):
     )
 
     # build model architecture
-    model_background = config.init_obj('arch_background', module_arch)
-    model_semantic = config.init_obj('arch_semantic', module_arch)
+    model_background = config_bg.init_obj('arch_background', module_arch)
+    model_semantic = config_sem.init_obj('arch_semantic', module_arch)
 
     logger.info(model_background)
     logger.info(model_semantic)
 
     # get function handles of loss and metrics
-    loss_fn = getattr(module_loss, config['loss'])
+    loss_fn = getattr(module_loss, config_sem['loss'])
 
-    logger.info('Loading checkpoint: {} ...'.format(config.resume))
-    checkpoint = torch.load(config.resume)
-    state_dict = checkpoint['state_dict']
-    if config['n_gpu'] > 1:
-        model = torch.nn.DataParallel(model_background)
-    model_background.load_state_dict(state_dict)
-    model_semantic.load_state_dict(state_dict)
+    # One Logger, Two different model(background model & semantic model)
+    logger.info('Loading background model checkpoint: {} ...'.format(config_bg.resume))
+    checkpoint_bg = torch.load(config_bg.resume)
+    state_bg_dict = checkpoint_bg['state_dict']
+    if config_bg['n_gpu'] > 1:
+        model_background = torch.nn.DataParallel(model_background)
+    model_background.load_state_dict(state_bg_dict)
+
+    logger.info('Loading semantic model checkpoint: {} ...'.format(config_sem.resume))
+    checkpoint_sem = torch.load(config_sem.resume)
+    state_sem_dict = checkpoint_sem['state_dict']
+    if config_sem['n_gpu'] > 1:
+        model_background = torch.nn.DataParallel(model_background)
+    model_semantic.load_state_dict(state_sem_dict)
 
     # prepare model for testing
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -66,7 +73,7 @@ def main(config):
 
 
 if __name__ == '__main__':
-    args = argparse.ArgumentParser(description='PyTorch Template')
+    args = argparse.ArgumentParser(description='Test code for evaluation.')
     args.add_argument('-c', '--config', default=None, type=str,
                       help='config file path (default: None)')
     args.add_argument('-r', '--resume', default=None, type=str,
@@ -74,5 +81,6 @@ if __name__ == '__main__':
     args.add_argument('-d', '--device', default=None, type=str,
                       help='indices of GPUs to enable (default: all)')
 
-    config = ConfigParser.from_args(args)
-    main(config)
+    config_bg = ConfigParser.from_args(args)
+    config_sem = ConfigParser.from_args(args)
+    main(config_bg, config_sem)
