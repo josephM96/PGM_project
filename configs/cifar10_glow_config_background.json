@@ -1,25 +1,25 @@
 {
-    "name": "LLR_ratio_glow_background_fmnist",
+    "name": "LLR_ratio_glow_background_cifar10",
     "n_gpu": 1,
 
     "arch_background": {
         "type": "Glow",
         "args": {
-            "input_channels": 1,
+            "input_channels": 3,
             "n_flow": 32,
-            "n_block": 3 
+            "n_block": 3
         }
     },
     "arch_semantic": {
         "type": "Glow",
         "args": {
-            "input_channels": 1,
+            "input_channels": 3,
             "n_flow": 32,
-            "n_block": 3 
+            "n_block": 3
         }
     },
     "data_loader": {
-        "type": "FashionMNISTDataLoader",
+        "type": "CIFAR10DataLoader",
         "args":{
             "data_dir": "data/",
             "batch_size": 64,

@@ -7,7 +7,7 @@
         "args": {
             "input_channels": 1,
             "n_flow": 32,
-            "n_block": 3
+            "n_block": 3 
         }
     },
     "arch_semantic": {
@@ -15,7 +15,7 @@
         "args": {
             "input_channels": 1,
             "n_flow": 32,
-            "n_block": 3
+            "n_block": 3 
         }
     },
     "data_loader": {
